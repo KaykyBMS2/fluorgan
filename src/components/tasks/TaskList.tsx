@@ -41,7 +41,7 @@ export function TaskList() {
         .from("tasks")
         .select(`
           *,
-          assigned_to (
+          assigned_to:profiles!tasks_assigned_to_fkey (
             id,
             first_name,
             last_name

@@ -43,14 +43,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(newLanguage);
   };
 
-  const t = (key: string, section: string = "common") => {
+  const t = (key: string, section: string = "common"): string => {
     try {
-      const keys = key.split(".");
-      let value = translations[language][section as keyof typeof translations.en];
-      for (const k of keys) {
-        value = value[k as keyof typeof value];
+      const sectionData = translations[language][section as keyof typeof translations.en];
+      if (typeof sectionData === "object" && sectionData !== null) {
+        const value = sectionData[key as keyof typeof sectionData];
+        if (typeof value === "string") {
+          return value;
+        }
+        console.error(`Translation for ${section}.${key} is not a string`);
+        return key;
       }
-      return value as string;
+      console.error(`Section ${section} not found in translations`);
+      return key;
     } catch (error) {
       console.error(`Translation missing: ${section}.${key}`);
       return key;

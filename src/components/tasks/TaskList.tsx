@@ -25,6 +25,11 @@ import { format } from "date-fns";
 import { Tables } from "@/integrations/supabase/types";
 import { ShareTaskDialog } from "./ShareTaskDialog";
 
+type TaskWithRelations = Tables<"tasks"> & {
+  assigned_to: Tables<"profiles">;
+  tags: Tables<"tags">[];
+};
+
 export function TaskList() {
   const { t } = useLanguage();
   const [shareTaskId, setShareTaskId] = useState<string | null>(null);
@@ -50,10 +55,7 @@ export function TaskList() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as (Tables["tasks"] & {
-        assigned_to: Tables["profiles"];
-        tags: Tables["tags"][];
-      })[];
+      return data as TaskWithRelations[];
     },
   });
 

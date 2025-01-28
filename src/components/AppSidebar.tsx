@@ -5,6 +5,7 @@ import {
   Settings,
   Plus,
   LogOut,
+  User2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -16,10 +17,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const menuItems = [
   {
@@ -45,8 +50,24 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { t } = useLanguage();
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   return (
     <Sidebar className="bg-white border-r border-gray-200">
@@ -76,17 +97,32 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <div className="mt-auto px-4 pb-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-500 hover:text-gray-900"
-            onClick={() => signOut()}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            {t("logout")}
-          </Button>
-        </div>
       </SidebarContent>
+      <SidebarFooter className="p-4 border-t border-gray-200">
+        <div className="flex items-center gap-3 mb-4">
+          <Avatar>
+            <AvatarImage src={profile?.avatar_url || ""} />
+            <AvatarFallback>
+              {profile?.first_name?.[0]}
+              {profile?.last_name?.[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">
+              {profile?.first_name} {profile?.last_name}
+            </p>
+            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-gray-500 hover:text-gray-900"
+          onClick={() => signOut()}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          {t("logout")}
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }

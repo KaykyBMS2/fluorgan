@@ -5,7 +5,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function SignUp() {
@@ -30,23 +30,35 @@ export default function SignUp() {
       return;
     }
 
-    // Check if username is already taken
-    const { data: existingUser } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("username", username)
-      .single();
+    try {
+      // Check if username is already taken using maybeSingle() to handle no results gracefully
+      const { data: existingUser, error: queryError } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("username", username)
+        .maybeSingle();
 
-    if (existingUser) {
+      if (queryError) {
+        throw queryError;
+      }
+
+      if (existingUser) {
+        toast({
+          title: "Error",
+          description: "Username is already taken",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await signUp(email, password, firstName, lastName, username);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Username is already taken",
+        description: error.message,
         variant: "destructive",
       });
-      return;
     }
-
-    await signUp(email, password, firstName, lastName, username);
   };
 
   return (

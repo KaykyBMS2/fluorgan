@@ -36,15 +36,15 @@ export function ShareTaskDialog({
   const { toast } = useToast();
   const [selectedUserId, setSelectedUserId] = useState<string>("");
 
-  const { data: users } = useQuery({
+  const { data: users } = useQuery<Tables<"profiles">[]>({
     queryKey: ["users"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name");
+        .select("id, first_name, last_name, username");
 
       if (error) throw error;
-      return data as Tables<"profiles", "Row">[];
+      return data;
     },
   });
 
@@ -88,7 +88,7 @@ export function ShareTaskDialog({
             <SelectContent>
               {users?.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
-                  {`${user.first_name} ${user.last_name}`}
+                  {user.username || `${user.first_name} ${user.last_name}`}
                 </SelectItem>
               ))}
             </SelectContent>

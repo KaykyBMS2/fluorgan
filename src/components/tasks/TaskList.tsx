@@ -25,16 +25,16 @@ import { format } from "date-fns";
 import { Tables } from "@/integrations/supabase/types";
 import { ShareTaskDialog } from "./ShareTaskDialog";
 
-type TaskWithRelations = Tables<"tasks", "Row"> & {
-  assigned_to: Tables<"profiles", "Row">;
-  tags: Tables<"tags", "Row">[];
+type TaskWithRelations = Tables<"tasks"> & {
+  assigned_to: Tables<"profiles">;
+  tags: Tables<"tags">[];
 };
 
 export function TaskList() {
   const { t } = useLanguage();
   const [shareTaskId, setShareTaskId] = useState<string | null>(null);
 
-  const { data: tasks, isLoading } = useQuery({
+  const { data: tasks, isLoading } = useQuery<TaskWithRelations[]>({
     queryKey: ["tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -44,7 +44,8 @@ export function TaskList() {
           assigned_to:profiles!tasks_assigned_to_fkey (
             id,
             first_name,
-            last_name
+            last_name,
+            username
           ),
           tags (
             id,
@@ -55,7 +56,7 @@ export function TaskList() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as TaskWithRelations[];
+      return data;
     },
   });
 

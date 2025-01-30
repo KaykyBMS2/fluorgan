@@ -25,9 +25,9 @@ import { format } from "date-fns";
 import { Tables } from "@/integrations/supabase/types";
 import { ShareTaskDialog } from "./ShareTaskDialog";
 
-type TaskWithRelations = Tables<"tasks"> & {
-  assigned_to: Tables<"profiles">;
-  tags: Tables<"tags">[];
+type TaskWithRelations = Tables<"tasks", "Row"> & {
+  assigned_to: Tables<"profiles", "Row">;
+  tags: Tables<"tags", "Row">[];
 };
 
 export function TaskList() {

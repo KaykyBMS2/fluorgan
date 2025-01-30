@@ -16,7 +16,7 @@ export function usePremiumAccess() {
 
       const { data, error } = await supabase
         .rpc('has_premium_access', {
-          user_uuid: user.id
+          user_uuid: user.id as string
         });
 
       if (error) {

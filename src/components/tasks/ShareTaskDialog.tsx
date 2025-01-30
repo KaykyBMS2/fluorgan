@@ -44,7 +44,7 @@ export function ShareTaskDialog({
         .select("id, first_name, last_name");
 
       if (error) throw error;
-      return data as Tables<"profiles">[];
+      return data as Tables<"profiles", "Row">[];
     },
   });
 

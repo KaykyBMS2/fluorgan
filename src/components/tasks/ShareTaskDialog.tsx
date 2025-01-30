@@ -73,30 +73,41 @@ export function ShareTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("shareTask")}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-500">
             {t("shareTaskDescription")}
           </DialogDescription>
         </DialogHeader>
-        <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-          <SelectTrigger>
-            <SelectValue placeholder={t("selectUser")} />
-          </SelectTrigger>
-          <SelectContent>
-            {users?.map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {`${user.first_name} ${user.last_name}`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="py-4">
+          <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("selectUser")} />
+            </SelectTrigger>
+            <SelectContent>
+              {users?.map((user) => (
+                <SelectItem key={user.id} value={user.id}>
+                  {`${user.first_name} ${user.last_name}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
+          >
             {t("cancel")}
           </Button>
-          <Button onClick={handleShare}>{t("share")}</Button>
+          <Button 
+            onClick={handleShare}
+            className="w-full sm:w-auto"
+          >
+            {t("share")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -60,7 +60,11 @@ export function TaskList() {
   });
 
   if (isLoading) {
-    return <div>{t("loading")}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">{t("loading")}</p>
+      </div>
+    );
   }
 
   const getPriorityColor = (priority: string) => {
@@ -90,29 +94,32 @@ export function TaskList() {
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 animate-in fade-in slide-in-from-bottom duration-500">
       {tasks?.map((task) => (
-        <Card key={task.id} className="flex flex-col">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">{task.title}</CardTitle>
-              <div className="flex gap-2">
+        <Card key={task.id} className="flex flex-col hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <CardTitle className="text-lg line-clamp-1">{task.title}</CardTitle>
+              <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-8 w-8"
                   onClick={() => setShareTaskId(task.id)}
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-            <CardDescription>{task.description}</CardDescription>
+            <CardDescription className="line-clamp-2 mt-1">
+              {task.description}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex-1">
             <div className="flex flex-wrap gap-2">
@@ -122,19 +129,32 @@ export function TaskList() {
               <Badge variant="secondary" className={getStatusColor(task.status)}>
                 {task.status}
               </Badge>
+              {task.tags?.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant="outline"
+                  style={{ backgroundColor: tag.color + "20" }}
+                >
+                  {tag.name}
+                </Badge>
+              ))}
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-2">
+          <CardFooter className="flex flex-col gap-2 pt-3 border-t">
             {task.due_date && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-sm text-gray-500 w-full">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(task.due_date), "PPP")}
+                <span className="truncate">
+                  {format(new Date(task.due_date), "PPP")}
+                </span>
               </div>
             )}
             {task.assigned_to && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-sm text-gray-500 w-full">
                 <User2 className="h-4 w-4" />
-                {`${task.assigned_to.first_name} ${task.assigned_to.last_name}`}
+                <span className="truncate">
+                  {`${task.assigned_to.first_name} ${task.assigned_to.last_name}`}
+                </span>
               </div>
             )}
           </CardFooter>

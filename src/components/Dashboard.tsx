@@ -53,78 +53,95 @@ export const Dashboard = () => {
       };
     },
   });
-  
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t("dashboard")}</h1>
-          <p className="text-gray-500 mt-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            {t("dashboard")}
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             {t("welcome", "common")}
           </p>
         </div>
-        <div className="flex gap-4">
-          <Button onClick={() => setCreateTaskOpen(true)}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            onClick={() => setCreateTaskOpen(true)}
+            className="w-full sm:w-auto"
+          >
             <Plus className="mr-2 h-4 w-4" />
             {t("createTask")}
           </Button>
-          <Button variant="outline" asChild>
+          <Button 
+            variant="outline" 
+            asChild
+            className="w-full sm:w-auto"
+          >
             <Link to="/tasks">{t("viewAllTasks")}</Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center space-x-4">
             <div className="p-2 bg-primary-50 rounded-lg">
-              <Clock className="h-6 w-6 text-primary-500" />
+              <Clock className="h-5 w-5 md:h-6 md:w-6 text-primary-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">{t("pending", "tasks")}</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("pending", "tasks")}
+              </p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {taskStats?.pending || 0}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center space-x-4">
             <div className="p-2 bg-secondary-50 rounded-lg">
-              <CheckCircle2 className="h-6 w-6 text-secondary-500" />
+              <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-secondary-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">{t("completed", "tasks")}</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("completed", "tasks")}
+              </p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {taskStats?.completed || 0}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center space-x-4">
             <div className="p-2 bg-red-50 rounded-lg">
-              <AlertCircle className="h-6 w-6 text-red-500" />
+              <AlertCircle className="h-5 w-5 md:h-6 md:w-6 text-red-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">{t("overdue", "tasks")}</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("overdue", "tasks")}
+              </p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {taskStats?.overdue || 0}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-4 md:p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center space-x-4">
             <div className="p-2 bg-purple-50 rounded-lg">
-              <BarChart2 className="h-6 w-6 text-purple-500" />
+              <BarChart2 className="h-5 w-5 md:h-6 md:w-6 text-purple-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">{t("productivity", "tasks")}</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("productivity", "tasks")}
+              </p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {taskStats?.productivity.toFixed(0)}%
               </p>
             </div>

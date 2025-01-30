@@ -14,6 +14,7 @@ import { useState } from "react";
 import { CreateTaskDialog } from "./tasks/CreateTaskDialog";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { Link } from "react-router-dom";
+import { NotificationsButton } from "./notifications/NotificationsButton";
 
 export const Dashboard = () => {
   const { t } = useLanguage();
@@ -58,9 +59,12 @@ export const Dashboard = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t("dashboard")}
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {t("dashboard")}
+            </h1>
+            <NotificationsButton />
+          </div>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
             {t("welcome", "common")}
           </p>

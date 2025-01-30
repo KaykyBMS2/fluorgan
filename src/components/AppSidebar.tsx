@@ -105,7 +105,7 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar className="bg-white border-r border-gray-200">
+      <Sidebar className="bg-white border-r border-gray-200 lg:bg-white/80 lg:backdrop-blur-xl">
         <SidebarHeader className="p-4">
           <h1 className="text-2xl font-bold text-primary-600">Fluorgan</h1>
         </SidebarHeader>

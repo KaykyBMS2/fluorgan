@@ -129,7 +129,7 @@ export const Dashboard = () => {
               </p>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       <CreateTaskDialog

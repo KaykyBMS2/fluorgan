@@ -5,14 +5,17 @@ import {
   AlertCircle,
   BarChart2,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export const Dashboard = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("dashboard")}</h1>
         <p className="text-gray-500 mt-2">
-          Bem-vindo ao Fluorgan. Aqui está o resumo das suas atividades.
+          {t("welcome", "common")}
         </p>
       </div>
 
@@ -23,8 +26,8 @@ export const Dashboard = () => {
               <Clock className="h-6 w-6 text-primary-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pendentes</p>
-              <p className="text-2xl font-bold text-gray-900">12</p>
+              <p className="text-sm text-gray-500">{t("pending", "tasks")}</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </Card>
@@ -35,8 +38,8 @@ export const Dashboard = () => {
               <CheckCircle2 className="h-6 w-6 text-secondary-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Concluídas</p>
-              <p className="text-2xl font-bold text-gray-900">48</p>
+              <p className="text-sm text-gray-500">{t("completed", "tasks")}</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </Card>
@@ -47,8 +50,8 @@ export const Dashboard = () => {
               <AlertCircle className="h-6 w-6 text-red-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Atrasadas</p>
-              <p className="text-2xl font-bold text-gray-900">3</p>
+              <p className="text-sm text-gray-500">{t("overdue", "tasks")}</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </Card>
@@ -59,32 +62,12 @@ export const Dashboard = () => {
               <BarChart2 className="h-6 w-6 text-purple-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Produtividade</p>
-              <p className="text-2xl font-bold text-gray-900">87%</p>
+              <p className="text-sm text-gray-500">{t("productivity", "tasks")}</p>
+              <p className="text-2xl font-bold text-gray-900">0%</p>
             </div>
           </div>
         </Card>
       </div>
-
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Tarefas Recentes</h2>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-            >
-              <div>
-                <h3 className="font-medium">Tarefa exemplo #{i}</h3>
-                <p className="text-sm text-gray-500">Criada há 2 dias</p>
-              </div>
-              <span className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                Em progresso
-              </span>
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 };

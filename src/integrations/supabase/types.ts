@@ -156,6 +156,7 @@ export type Database = {
           id: string
           priority: string
           status: string
+          status_color: string | null
           title: string
           updated_at: string
         }
@@ -168,6 +169,7 @@ export type Database = {
           id?: string
           priority?: string
           status?: string
+          status_color?: string | null
           title: string
           updated_at?: string
         }
@@ -180,6 +182,7 @@ export type Database = {
           id?: string
           priority?: string
           status?: string
+          status_color?: string | null
           title?: string
           updated_at?: string
         }

@@ -28,13 +28,14 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Settings() {
   const { user } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const form = useForm();
+  const queryClient = useQueryClient();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -71,6 +72,31 @@ export default function Settings() {
         title: t("success"),
         description: t("profileUpdated", "settings"),
       });
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+    }
+  };
+
+  const handleLanguageChange = async (newLanguage: string) => {
+    if (!user?.id) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ language: newLanguage })
+      .eq("id", user.id);
+
+    if (error) {
+      toast({
+        title: t("error"),
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      await setLanguage(newLanguage as any);
+      toast({
+        title: t("success"),
+        description: t("languageUpdated", "settings"),
+      });
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
     }
   };
 
@@ -125,11 +151,11 @@ export default function Settings() {
           <CardHeader>
             <CardTitle>{t("language", "settings")}</CardTitle>
             <CardDescription>
-              Choose your preferred language
+              {t("chooseLanguage", "settings")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={language} onValueChange={setLanguage}>
+            <Select value={language} onValueChange={handleLanguageChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

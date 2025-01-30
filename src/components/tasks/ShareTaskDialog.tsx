@@ -36,12 +36,12 @@ export function ShareTaskDialog({
   const { toast } = useToast();
   const [selectedUserId, setSelectedUserId] = useState<string>("");
 
-  const { data: users } = useQuery<Tables<"profiles">[]>({
+  const { data: users } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, username");
+        .select("*");
 
       if (error) throw error;
       return data;
@@ -102,10 +102,7 @@ export function ShareTaskDialog({
           >
             {t("cancel")}
           </Button>
-          <Button 
-            onClick={handleShare}
-            className="w-full sm:w-auto"
-          >
+          <Button onClick={handleShare} className="w-full sm:w-auto">
             {t("share")}
           </Button>
         </DialogFooter>

@@ -25,7 +25,17 @@ import { format } from "date-fns";
 import { Tables } from "@/integrations/supabase/types";
 import { ShareTaskDialog } from "./ShareTaskDialog";
 
-type TaskWithRelations = Tables<"tasks"> & {
+type TaskWithRelations = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  status_color: string | null;
   assigned_to: Tables<"profiles">;
   tags: Tables<"tags">[];
 };
@@ -34,29 +44,20 @@ export function TaskList() {
   const { t } = useLanguage();
   const [shareTaskId, setShareTaskId] = useState<string | null>(null);
 
-  const { data: tasks, isLoading } = useQuery<TaskWithRelations[]>({
+  const { data: tasks, isLoading } = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
         .select(`
           *,
-          assigned_to:profiles!tasks_assigned_to_fkey (
-            id,
-            first_name,
-            last_name,
-            username
-          ),
-          tags (
-            id,
-            name,
-            color
-          )
+          assigned_to:profiles!tasks_assigned_to_fkey (*),
+          tags (*)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as TaskWithRelations[];
     },
   });
 
@@ -154,7 +155,8 @@ export function TaskList() {
               <div className="flex items-center gap-2 text-sm text-gray-500 w-full">
                 <User2 className="h-4 w-4" />
                 <span className="truncate">
-                  {`${task.assigned_to.first_name} ${task.assigned_to.last_name}`}
+                  {task.assigned_to.username || 
+                    `${task.assigned_to.first_name} ${task.assigned_to.last_name}`}
                 </span>
               </div>
             )}

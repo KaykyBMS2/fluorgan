@@ -22,10 +22,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
+import { useToast } from "@/components/ui/use-toast";
 
 const menuItems = [
   {
@@ -54,19 +55,50 @@ export function AppSidebar() {
   const { signOut, user } = useAuth();
   const { t } = useLanguage();
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data, error } = await supabase
+      
+      // First try to get the profile
+      const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (fetchError) {
+        toast({
+          title: t("error"),
+          description: fetchError.message,
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      // If profile exists, return it
+      if (existingProfile) return existingProfile;
+
+      // If no profile exists, create one
+      const { data: newProfile, error: insertError } = await supabase
+        .from("profiles")
+        .insert([{ id: user.id }])
+        .select()
+        .maybeSingle();
+
+      if (insertError) {
+        toast({
+          title: t("error"),
+          description: insertError.message,
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      return newProfile;
     },
     enabled: !!user?.id,
   });

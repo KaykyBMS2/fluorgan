@@ -1,6 +1,6 @@
 import { Database } from "./database";
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type PublicSchema = Database["public"]
 
 export type Tables<
   TableName extends keyof PublicSchema["Tables"],

@@ -1,3 +1,12 @@
+import { AutomationsTable } from "./tables/automations";
+import { CommentsTable } from "./tables/comments";
+import { IntegrationsTable } from "./tables/integrations";
+import { ProfilesTable } from "./tables/profiles";
+import { SubscriptionsTable } from "./tables/subscriptions";
+import { TagsTable } from "./tables/tags";
+import { TaskTagsTable } from "./tables/task-tags";
+import { TasksTable } from "./tables/tasks";
+
 export type Json =
   | string
   | number

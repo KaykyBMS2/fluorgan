@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useAuth } from "@/lib/auth/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,10 +40,25 @@ interface CreateTaskDialogProps {
 export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
   const form = useForm<TablesInsert<"tasks">>();
 
   const handleSubmit = async (data: TablesInsert<"tasks">) => {
-    const { error } = await supabase.from("tasks").insert(data);
+    if (!user) {
+      toast({
+        title: t("error"),
+        description: t("notAuthenticated"),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const taskData = {
+      ...data,
+      created_by: user.id,
+    };
+
+    const { error } = await supabase.from("tasks").insert(taskData);
 
     if (error) {
       toast({

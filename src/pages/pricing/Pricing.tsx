@@ -118,7 +118,7 @@ const Pricing = () => {
         "Automação de workflows",
         "Relatórios detalhados",
       ],
-      priceId: "price_id_do_plano_pro", // Substitua pelo seu Price ID do Stripe
+      priceId: "price_1QnAFbAEwqbxqPckyuCd7ALL", // Substitua pelo seu Price ID do Stripe
       popular: true,
     },
     {
@@ -133,7 +133,7 @@ const Pricing = () => {
         "Permissões avançadas",
         "Integrações exclusivas",
       ],
-      priceId: "price_id_do_plano_enterprise", // Substitua pelo seu Price ID do Stripe
+      priceId: "price_1QnADtAEwqbxqPck5DKfLV3Y", // Substitua pelo seu Price ID do Stripe
     },
   ];
 

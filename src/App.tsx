@@ -12,6 +12,7 @@ import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/SignUp";
 import Settings from "./pages/settings/Settings";
 import Tasks from "./pages/tasks/Tasks";
+import Pricing from "./pages/pricing/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Routes>
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<SignUp />} />
+                <Route path="/pricing" element={<Pricing />} />
                 <Route
                   path="/"
                   element={

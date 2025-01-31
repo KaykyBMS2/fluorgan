@@ -55,10 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signInWithPassword({ 
         email, 
-        password,
-        options: {
-          persistSession: true // Ensure session persistence
-        }
+        password
       });
       
       if (error) {
@@ -99,8 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             last_name: lastName,
             username: username,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          persistSession: true // Ensure session persistence
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         },
       });
       

@@ -56,7 +56,7 @@ const PricingCard = ({
   };
 
   return (
-    <Card className={`p-6 ${popular ? 'border-primary ring-2 ring-primary' : ''}`}>
+    <Card className={`p-6 relative ${popular ? 'border-primary ring-2 ring-primary' : ''}`}>
       {popular && (
         <div className="absolute top-0 right-0 px-3 py-1 text-sm text-white transform translate-x-2 -translate-y-2 bg-primary rounded-full">
           Popular
@@ -118,7 +118,7 @@ const Pricing = () => {
         "Automação de workflows",
         "Relatórios detalhados",
       ],
-      priceId: "price_1QnAFbAEwqbxqPckyuCd7ALL", // Substitua pelo seu Price ID do Stripe
+      priceId: "price_1QnAFbAEwqbxqPckyuCd7ALL",
       popular: true,
     },
     {
@@ -133,7 +133,7 @@ const Pricing = () => {
         "Permissões avançadas",
         "Integrações exclusivas",
       ],
-      priceId: "price_1QnADtAEwqbxqPck5DKfLV3Y", // Substitua pelo seu Price ID do Stripe
+      priceId: "price_1QnADtAEwqbxqPck5DKfLV3Y",
     },
   ];
 

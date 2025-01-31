@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -21,25 +21,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Initialize the session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // Set up the auth state listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      if (event === 'SIGNED_IN') {
+        navigate('/');
+      } else if (event === 'SIGNED_OUT') {
+        navigate('/auth/login');
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Handle successful token refresh
+        setUser(session?.user ?? null);
+      } else if (event === 'USER_UPDATED') {
+        setUser(session?.user ?? null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      navigate("/");
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password,
+        options: {
+          persistSession: true // Ensure session persistence
+        }
+      });
+      
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Error signing in",
+            description: "Invalid email or password",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error signing in",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+        throw error;
+      }
     } catch (error: any) {
+      // If we haven't already shown a toast, show the generic error
       toast({
         title: "Error signing in",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
@@ -54,9 +99,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             last_name: lastName,
             username: username,
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          persistSession: true // Ensure session persistence
         },
       });
+      
       if (error) throw error;
+      
       toast({
         title: "Success!",
         description: "Please check your email to verify your account.",
@@ -75,22 +124,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        // If we get a session not found error, we can still proceed with local logout
         if (error.message.includes("session_not_found")) {
+          // If session not found, just clear local state
           setUser(null);
           navigate("/auth/login");
           return;
         }
         throw error;
       }
-      navigate("/auth/login");
     } catch (error: any) {
       toast({
         title: "Error signing out",
         description: error.message,
         variant: "destructive",
       });
-      // Even if there's an error, we should still clear the local session
+    } finally {
+      // Always clear local state and redirect
       setUser(null);
       navigate("/auth/login");
     }

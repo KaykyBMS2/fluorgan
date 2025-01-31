@@ -22,11 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { useToast } from "@/components/ui/use-toast";
+import { Link, useNavigate } from "react-router-dom";
 
 const menuItems = [
   {
@@ -56,14 +57,13 @@ export function AppSidebar() {
   const { t } = useLanguage();
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      // First try to get the profile
       const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
@@ -79,10 +79,8 @@ export function AppSidebar() {
         return null;
       }
 
-      // If profile exists, return it
       if (existingProfile) return existingProfile;
 
-      // If no profile exists, create one
       const { data: newProfile, error: insertError } = await supabase
         .from("profiles")
         .insert([{ id: user.id }])
@@ -126,10 +124,10 @@ export function AppSidebar() {
                 {menuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <a href={item.url} className="flex items-center">
+                      <Link to={item.url} className="flex items-center">
                         <item.icon className="mr-2 h-4 w-4" />
                         <span>{t(item.title, "common")}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

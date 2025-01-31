@@ -143,6 +143,9 @@ export const translations = {
       lastName: "Sobrenome",
       updateProfile: "Atualizar Perfil",
       profileUpdated: "Perfil atualizado com sucesso",
+      themeLight: "Claro",
+      themeDark: "Escuro",
+      themeSystem: "Sistema",
     },
   },
   es: {

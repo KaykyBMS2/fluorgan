@@ -167,8 +167,7 @@ export function TaskList() {
       (col) => col.id === result.destination.droppableId
     );
 
-    if (!sourceColumn || !destinationColumn || sourceColumn.id === destinationColumn.id)
-      return;
+    if (!sourceColumn || !destinationColumn) return;
 
     const taskId = result.draggableId;
     const newStatus = destinationColumn.status;
@@ -181,6 +180,15 @@ export function TaskList() {
 
       if (error) throw error;
 
+      // Atualiza o cache do React Query imediatamente para uma melhor UX
+      queryClient.setQueryData(["tasks"], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((task: TaskWithRelations) =>
+          task.id === taskId ? { ...task, status: newStatus } : task
+        );
+      });
+
+      // Invalida a query para buscar os dados atualizados do servidor
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       toast({

@@ -1,18 +1,11 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext } from "react-beautiful-dnd";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { TaskColumn } from "./TaskColumn";
+import { TaskWithRelations } from "@/types/task";
+import { useToast } from "@/components/ui/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,34 +26,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Calendar,
-  CheckCircle2,
-  Clock,
-  Edit,
-  Share2,
-  Trash2,
-  User2,
-} from "lucide-react";
-import { format } from "date-fns";
-import { Tables } from "@/integrations/supabase/types";
+import { Button } from "@/components/ui/button";
 import { ShareTaskDialog } from "./ShareTaskDialog";
-import { useToast } from "@/components/ui/use-toast";
-
-type TaskWithRelations = {
-  id: string;
-  title: string;
-  description: string | null;
-  status: string;
-  priority: string;
-  due_date: string | null;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  status_color: string | null;
-  assigned_to: Tables<"profiles">;
-  tags: Tables<"tags">[];
-};
 
 type Column = {
   id: string;
@@ -180,7 +147,7 @@ export function TaskList() {
 
       if (error) throw error;
 
-      // Atualiza o cache do React Query imediatamente para uma melhor UX
+      // Update React Query cache immediately for better UX
       queryClient.setQueryData(["tasks"], (oldData: any) => {
         if (!oldData) return oldData;
         return oldData.map((task: TaskWithRelations) =>
@@ -188,7 +155,7 @@ export function TaskList() {
         );
       });
 
-      // Invalida a query para buscar os dados atualizados do servidor
+      // Invalidate query to fetch updated data from server
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       toast({
@@ -216,125 +183,17 @@ export function TaskList() {
     return tasks?.filter((task) => task.status === status) || [];
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-500";
-      case "medium":
-        return "bg-yellow-500";
-      case "low":
-        return "bg-green-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
   return (
     <>
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {columns.map((column) => (
-            <div key={column.id} className="flex flex-col">
-              <h2 className="text-lg font-semibold mb-4">{column.title}</h2>
-              <Droppable droppableId={column.id}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="flex-1 space-y-4"
-                  >
-                    {getTasksByStatus(column.status).map((task, index) => (
-                      <Draggable key={task.id} draggableId={task.id} index={index}>
-                        {(provided) => (
-                          <Card
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className="hover:shadow-lg transition-shadow"
-                          >
-                            <CardHeader className="pb-3">
-                              <div className="flex items-start justify-between">
-                                <CardTitle className="text-lg line-clamp-1">
-                                  {task.title}
-                                </CardTitle>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => setShareTaskId(task.id)}
-                                  >
-                                    <Share2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => setEditTask(task)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => setDeleteTaskId(task.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                              <CardDescription className="line-clamp-2 mt-1">
-                                {task.description}
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex-1">
-                              <div className="flex flex-wrap gap-2">
-                                <Badge
-                                  variant="secondary"
-                                  className={getPriorityColor(task.priority)}
-                                >
-                                  {task.priority}
-                                </Badge>
-                                {task.tags?.map((tag) => (
-                                  <Badge
-                                    key={tag.id}
-                                    variant="outline"
-                                    style={{ backgroundColor: tag.color + "20" }}
-                                  >
-                                    {tag.name}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </CardContent>
-                            <CardFooter className="flex flex-col gap-2 pt-3 border-t">
-                              {task.due_date && (
-                                <div className="flex items-center gap-2 text-sm text-gray-500 w-full">
-                                  <Calendar className="h-4 w-4" />
-                                  <span className="truncate">
-                                    {format(new Date(task.due_date), "PPP")}
-                                  </span>
-                                </div>
-                              )}
-                              {task.assigned_to && (
-                                <div className="flex items-center gap-2 text-sm text-gray-500 w-full">
-                                  <User2 className="h-4 w-4" />
-                                  <span className="truncate">
-                                    {task.assigned_to.username ||
-                                      `${task.assigned_to.first_name} ${task.assigned_to.last_name}`}
-                                  </span>
-                                </div>
-                              )}
-                            </CardFooter>
-                          </Card>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </div>
+            <TaskColumn
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              tasks={getTasksByStatus(column.status)}
+            />
           ))}
         </div>
       </DragDropContext>
@@ -350,7 +209,7 @@ export function TaskList() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteTask", "tasks")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("deleteTaskConfirmation", "tasks")}
+              {t("deleteTaskDescription", "tasks")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

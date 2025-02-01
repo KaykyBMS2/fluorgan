@@ -5,29 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { TaskColumn } from "./TaskColumn";
 import { TaskWithRelations } from "@/types/task";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { ShareTaskDialog } from "./ShareTaskDialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ShareTaskDialog } from "./ShareTaskDialog";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Column = {
   id: string;
@@ -48,6 +33,7 @@ export function TaskList() {
   const [shareTaskId, setShareTaskId] = useState<string | null>(null);
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const [editTask, setEditTask] = useState<TaskWithRelations | null>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ["tasks"],
@@ -80,7 +66,7 @@ export function TaskList() {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
         title: t("success"),
-        description: t("taskDeleted", "tasks"),
+        description: t("taskDeleted"),
       });
     } catch (error: any) {
       toast({
@@ -114,7 +100,7 @@ export function TaskList() {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
         title: t("success"),
-        description: t("taskUpdated", "tasks"),
+        description: t("taskUpdated"),
       });
       setEditTask(null);
     } catch (error: any) {
@@ -147,7 +133,6 @@ export function TaskList() {
 
       if (error) throw error;
 
-      // Update React Query cache immediately for better UX
       queryClient.setQueryData(["tasks"], (oldData: any) => {
         if (!oldData) return oldData;
         return oldData.map((task: TaskWithRelations) =>
@@ -155,12 +140,11 @@ export function TaskList() {
         );
       });
 
-      // Invalidate query to fetch updated data from server
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       toast({
         title: t("success"),
-        description: t("taskUpdated", "tasks"),
+        description: t("taskUpdated"),
       });
     } catch (error: any) {
       toast({
@@ -169,6 +153,22 @@ export function TaskList() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    const container = document.getElementById('kanban-container');
+    if (!container) return;
+
+    const scrollAmount = 300;
+    const newPosition = direction === 'left' 
+      ? Math.max(0, scrollPosition - scrollAmount)
+      : scrollPosition + scrollAmount;
+
+    container.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
+    });
+    setScrollPosition(newPosition);
   };
 
   if (isLoading) {
@@ -184,16 +184,43 @@ export function TaskList() {
   };
 
   return (
-    <>
+    <div className="relative">
+      <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 z-10">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => handleScroll('left')}
+          className="rounded-full bg-background/80 backdrop-blur-sm shadow-md"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => handleScroll('right')}
+          className="rounded-full bg-background/80 backdrop-blur-sm shadow-md"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div 
+          id="kanban-container"
+          className="flex gap-6 overflow-x-auto pb-4 px-4 snap-x snap-mandatory"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {columns.map((column) => (
-            <TaskColumn
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              tasks={getTasksByStatus(column.status)}
-            />
+            <div key={column.id} className="snap-center">
+              <TaskColumn
+                id={column.id}
+                title={column.title}
+                tasks={getTasksByStatus(column.status)}
+              />
+            </div>
           ))}
         </div>
       </DragDropContext>
@@ -207,9 +234,9 @@ export function TaskList() {
       <AlertDialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteTask", "tasks")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTask")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("deleteTaskDescription", "tasks")}
+              {t("deleteTaskDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -224,8 +251,8 @@ export function TaskList() {
       <Dialog open={!!editTask} onOpenChange={() => setEditTask(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("editTask", "tasks")}</DialogTitle>
-            <DialogDescription>{t("editTaskDescription", "tasks")}</DialogDescription>
+            <DialogTitle>{t("editTask")}</DialogTitle>
+            <DialogDescription>{t("editTaskDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateTask}>
             <div className="space-y-4 py-4">
@@ -256,6 +283,6 @@ export function TaskList() {
           </form>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

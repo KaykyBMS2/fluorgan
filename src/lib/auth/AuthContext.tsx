@@ -21,28 +21,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize the session
+    // Initialize the session with session persistence
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Set up the auth state listener
+    // Set up the auth state listener with improved error handling
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+      try {
+        setUser(session?.user ?? null);
+        setLoading(false);
 
-      if (event === 'SIGNED_IN') {
-        navigate('/');
-      } else if (event === 'SIGNED_OUT') {
+        if (event === 'SIGNED_IN') {
+          navigate('/');
+        } else if (event === 'SIGNED_OUT') {
+          navigate('/auth/login');
+        } else if (event === 'TOKEN_REFRESHED') {
+          setUser(session?.user ?? null);
+        } else if (event === 'USER_UPDATED') {
+          setUser(session?.user ?? null);
+        }
+      } catch (error) {
+        console.error('Auth state change error:', error);
+        setUser(null);
+        setLoading(false);
         navigate('/auth/login');
-      } else if (event === 'TOKEN_REFRESHED') {
-        // Handle successful token refresh
-        setUser(session?.user ?? null);
-      } else if (event === 'USER_UPDATED') {
-        setUser(session?.user ?? null);
       }
     });
 
@@ -55,7 +61,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signInWithPassword({ 
         email, 
-        password
+        password,
+        options: {
+          persistSession: true // Ensure session persistence
+        }
       });
       
       if (error) {
@@ -96,7 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             last_name: lastName,
             username: username,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          persistSession: true // Ensure session persistence
         },
       });
       

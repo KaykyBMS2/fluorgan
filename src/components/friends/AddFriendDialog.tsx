@@ -7,6 +7,10 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useQuery } from "@tanstack/react-query";
+import { Tables } from "@/integrations/supabase/types";
+
+type Profile = Tables<"profiles">;
+type Friendship = Tables<"friendships">;
 
 export function AddFriendDialog({
   open,
@@ -30,7 +34,7 @@ export function AddFriendDialog({
         .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`);
 
       if (error) throw error;
-      return data;
+      return data as Friendship[];
     },
   });
 

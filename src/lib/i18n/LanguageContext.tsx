@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { translations, Language } from "./translations";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 type LanguageContextType = {
   language: Language;
@@ -20,7 +20,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         try {
-          // First try to get the profile
           const { data: profile, error: fetchError } = await supabase
             .from("profiles")
             .select("language")
@@ -32,13 +31,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          // If profile exists and has a language, use it
           if (profile?.language) {
             setLanguageState(profile.language as Language);
             return;
           }
 
-          // If no profile exists, create one with default language
           if (!profile) {
             const { error: insertError } = await supabase
               .from("profiles")

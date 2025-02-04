@@ -44,7 +44,7 @@ export function AddFriendDialog({
       const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("id, first_name, last_name")
-        .eq("id", (await supabase.auth.admin.getUserByEmail(email)).data.user?.id)
+        .eq("email", email)
         .single();
 
       if (userError || !userData) {

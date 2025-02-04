@@ -21,13 +21,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize the session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Set up the auth state listener with improved error handling
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -39,10 +37,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           navigate('/');
         } else if (event === 'SIGNED_OUT') {
           navigate('/auth/login');
-        } else if (event === 'TOKEN_REFRESHED') {
-          setUser(session?.user ?? null);
-        } else if (event === 'USER_UPDATED') {
-          setUser(session?.user ?? null);
         }
       } catch (error) {
         console.error('Auth state change error:', error);
@@ -68,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error.message.includes('Invalid login credentials')) {
           toast({
             title: "Error signing in",
-            description: "Invalid email or password",
+            description: "Invalid email or password. Please check your credentials and try again.",
             variant: "destructive",
           });
         } else {
@@ -81,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
     } catch (error: any) {
-      // If we haven't already shown a toast, show the generic error
+      console.error('Sign in error:', error);
       toast({
         title: "Error signing in",
         description: "An unexpected error occurred. Please try again.",
@@ -106,7 +100,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Sign up error:', error);
+        toast({
+          title: "Error signing up",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
       
       toast({
         title: "Success!",
@@ -114,34 +116,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       navigate("/auth/login");
     } catch (error: any) {
+      console.error('Sign up error:', error);
       toast({
         title: "Error signing up",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        if (error.message.includes("session_not_found")) {
-          // If session not found, just clear local state
-          setUser(null);
-          navigate("/auth/login");
-          return;
-        }
-        throw error;
-      }
+      if (error) throw error;
     } catch (error: any) {
+      console.error('Sign out error:', error);
       toast({
         title: "Error signing out",
         description: error.message,
         variant: "destructive",
       });
     } finally {
-      // Always clear local state and redirect
       setUser(null);
       navigate("/auth/login");
     }

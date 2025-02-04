@@ -6,12 +6,14 @@ import {
   AlertCircle,
   BarChart2,
   Plus,
+  UserPlus,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { CreateTaskDialog } from "./tasks/CreateTaskDialog";
+import { AddFriendDialog } from "./friends/AddFriendDialog";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { Link } from "react-router-dom";
 import { NotificationsButton } from "./notifications/NotificationsButton";
@@ -20,6 +22,7 @@ export const Dashboard = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [addFriendOpen, setAddFriendOpen] = useState(false);
 
   const { data: taskStats } = useQuery({
     queryKey: ["taskStats"],
@@ -76,6 +79,14 @@ export const Dashboard = () => {
           >
             <Plus className="mr-2 h-4 w-4" />
             {t("createTask")}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setAddFriendOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            {t("addFriend")}
           </Button>
           <Button 
             variant="outline" 
@@ -156,6 +167,11 @@ export const Dashboard = () => {
       <CreateTaskDialog
         open={createTaskOpen}
         onOpenChange={setCreateTaskOpen}
+      />
+
+      <AddFriendDialog
+        open={addFriendOpen}
+        onOpenChange={setAddFriendOpen}
       />
     </div>
   );

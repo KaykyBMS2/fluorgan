@@ -5,6 +5,7 @@ import {
   Settings,
   Plus,
   LogOut,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,6 +29,7 @@ import { useState } from "react";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const menuItems = [
   {
@@ -101,11 +103,57 @@ export function AppSidebar() {
     enabled: !!user?.id,
   });
 
+  const { data: colleagues, isLoading: isLoadingColleagues } = useQuery({
+    queryKey: ["colleagues", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data: friendships, error: friendshipsError } = await supabase
+        .from("friendships")
+        .select(`
+          sender_id,
+          receiver_id,
+          sender:profiles!friendships_sender_id_fkey(
+            id,
+            first_name,
+            last_name,
+            avatar_url
+          ),
+          receiver:profiles!friendships_receiver_id_fkey(
+            id,
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .eq("status", "accepted");
+
+      if (friendshipsError) {
+        toast({
+          title: t("error"),
+          description: friendshipsError.message,
+          variant: "destructive",
+        });
+        return [];
+      }
+
+      return friendships.map((friendship) => {
+        const isReceiver = friendship.receiver_id === user.id;
+        const colleague = isReceiver ? friendship.sender : friendship.receiver;
+        return colleague;
+      });
+    },
+    enabled: !!user?.id,
+  });
+
   return (
     <>
-      <Sidebar className="bg-white border-r border-gray-200 lg:bg-white/80 lg:backdrop-blur-xl">
+      <Sidebar className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
         <SidebarHeader className="p-4">
-          <h1 className="text-2xl font-bold text-primary-600">Fluorgan</h1>
+          <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+            Fluorgan
+          </h1>
         </SidebarHeader>
         <SidebarContent>
           <div className="px-4 mb-4">
@@ -134,8 +182,50 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+              <Users className="mr-2 h-4 w-4 inline-block" />
+              {t("colleagues", "common")}
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-2 py-2">
+              {isLoadingColleagues ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : colleagues?.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+                  {t("noColleagues", "common")}
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  {colleagues?.map((colleague) => (
+                    <div
+                      key={colleague.id}
+                      className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={colleague.avatar_url || ""} />
+                        <AvatarFallback>
+                          {colleague.first_name?.[0]}
+                          {colleague.last_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {colleague.first_name} {colleague.last_name}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter className="p-4 border-t border-gray-200">
+        <SidebarFooter className="p-4 border-t border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3 mb-4">
             <Avatar>
               <AvatarImage src={profile?.avatar_url || ""} />
@@ -148,12 +238,14 @@ export function AppSidebar() {
               <p className="text-sm font-medium truncate">
                 {profile?.first_name} {profile?.last_name}
               </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {user?.email}
+              </p>
             </div>
           </div>
           <Button
             variant="ghost"
-            className="w-full justify-start text-gray-500 hover:text-gray-900"
+            className="w-full justify-start text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
             onClick={() => signOut()}
           >
             <LogOut className="mr-2 h-4 w-4" />

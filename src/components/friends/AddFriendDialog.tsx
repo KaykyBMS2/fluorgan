@@ -40,15 +40,15 @@ export function AddFriendDialog({
 
     setIsLoading(true);
     try {
-      // First, get the user ID for the email
+      // First, get the user ID for the email from the profiles table
       const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("id, first_name, last_name")
-        .eq("id", (await supabase.auth.admin.listUsers()).data.users.find(u => u.email === email)?.id)
+        .eq("id", (await supabase.auth.admin.getUserByEmail(email)).data.user?.id)
         .single();
 
       if (userError || !userData) {
-        throw new Error(t("userNotFound"));
+        throw new Error(t("userNotFound", "common"));
       }
 
       // Check if friendship already exists
@@ -59,7 +59,7 @@ export function AddFriendDialog({
       );
 
       if (isFriendshipExists) {
-        throw new Error(t("friendshipAlreadyExists"));
+        throw new Error(t("friendshipAlreadyExists", "common"));
       }
 
       // Create friendship request
@@ -73,14 +73,14 @@ export function AddFriendDialog({
       if (friendshipError) throw friendshipError;
 
       toast({
-        title: t("success"),
-        description: t("friendRequestSent"),
+        title: t("success", "common"),
+        description: t("friendRequestSent", "common"),
       });
 
       onOpenChange(false);
     } catch (error: any) {
       toast({
-        title: t("error"),
+        title: t("error", "common"),
         description: error.message,
         variant: "destructive",
       });
@@ -93,16 +93,16 @@ export function AddFriendDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("addFriend")}</DialogTitle>
+          <DialogTitle>{t("addFriend", "common")}</DialogTitle>
           <DialogDescription>
-            {t("addFriendDescription")}
+            {t("addFriendDescription", "common")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Input
               type="email"
-              placeholder={t("enterFriendEmail")}
+              placeholder={t("enterFriendEmail", "common")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -114,10 +114,10 @@ export function AddFriendDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              {t("cancel")}
+              {t("cancel", "common")}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? t("sending") : t("sendRequest")}
+              {isLoading ? t("sending", "common") : t("sendRequest", "common")}
             </Button>
           </DialogFooter>
         </form>

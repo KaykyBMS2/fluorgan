@@ -7,10 +7,8 @@ import { TaskColumn } from "./TaskColumn";
 import { TaskWithRelations } from "@/types/task";
 import { useToast } from "@/hooks/use-toast";
 import { ShareTaskDialog } from "./ShareTaskDialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { EditTaskDialog } from "./dialogs/EditTaskDialog";
+import { DeleteTaskDialog } from "./dialogs/DeleteTaskDialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -231,58 +229,17 @@ export function TaskList() {
         taskId={shareTaskId}
       />
 
-      <AlertDialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteTask")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("deleteTaskDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTask} className="bg-red-500">
-              {t("delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteTaskDialog
+        taskId={deleteTaskId}
+        onOpenChange={() => setDeleteTaskId(null)}
+        onConfirm={handleDeleteTask}
+      />
 
-      <Dialog open={!!editTask} onOpenChange={() => setEditTask(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("editTask")}</DialogTitle>
-            <DialogDescription>{t("editTaskDescription")}</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateTask}>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label htmlFor="title">{t("title")}</label>
-                <Input
-                  id="title"
-                  name="title"
-                  defaultValue={editTask?.title}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="description">{t("description")}</label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  defaultValue={editTask?.description || ""}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditTask(null)}>
-                {t("cancel")}
-              </Button>
-              <Button type="submit">{t("save")}</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <EditTaskDialog
+        task={editTask}
+        onOpenChange={() => setEditTask(null)}
+        onSubmit={handleUpdateTask}
+      />
     </div>
   );
 }

@@ -49,9 +49,13 @@ export function AddFriendDialog({
         .from("profiles")
         .select("id, first_name, last_name")
         .eq("email", email)
-        .single();
+        .maybeSingle();
 
-      if (userError || !userData) {
+      if (userError) {
+        throw new Error(t("userNotFound", "common"));
+      }
+
+      if (!userData) {
         throw new Error(t("userNotFound", "common"));
       }
 

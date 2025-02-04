@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -17,22 +17,32 @@ export default function SignUp() {
   const { signUp } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
       if (!email || !password || !firstName || !lastName || !username) {
         toast({
-          title: t("error"),
+          title: t("error", "common"),
           description: t("allFieldsRequired", "auth"),
           variant: "destructive",
         });
         return;
       }
+
       await signUp(email, password, firstName, lastName, username);
+      
+      toast({
+        title: t("success", "common"),
+        description: "Please check your email to verify your account.",
+      });
+      
+      navigate("/auth/login");
     } catch (error: any) {
       toast({
-        title: t("error"),
+        title: t("error", "common"),
         description: error.message,
         variant: "destructive",
       });
@@ -92,7 +102,7 @@ export default function SignUp() {
               />
             </div>
             <Input
-              placeholder="Nome de usuário"
+              placeholder={t("username", "common")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -100,7 +110,7 @@ export default function SignUp() {
             />
             <Input
               type="email"
-              placeholder={t("email")}
+              placeholder={t("email", "common")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -108,14 +118,14 @@ export default function SignUp() {
             />
             <Input
               type="password"
-              placeholder={t("password")}
+              placeholder={t("password", "common")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="h-11 bg-background text-foreground"
             />
             <Button type="submit" className="w-full h-11">
-              {t("signup")}
+              {t("signup", "common")}
             </Button>
           </form>
         </CardContent>
@@ -127,7 +137,7 @@ export default function SignUp() {
               to="/auth/login" 
               className="text-primary hover:underline font-medium"
             >
-              {t("login")}
+              {t("login", "common")}
             </Link>
           </p>
         </CardFooter>

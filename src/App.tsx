@@ -10,8 +10,9 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/SignUp";
-import Settings from "./pages/settings/Settings";
-import Tasks from "./pages/tasks/Tasks";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Settings from "./pages/dashboard/settings/Settings";
+import Tasks from "./pages/dashboard/tasks/Tasks";
 import Pricing from "./pages/pricing/Pricing";
 import NotFound from "./pages/NotFound";
 
@@ -27,19 +28,20 @@ const App = () => (
               <Toaster />
               <Sonner />
               <Routes>
+                <Route path="/" element={<Index />} />
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/signup" element={<SignUp />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route
-                  path="/"
+                  path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <Index />
+                      <Dashboard />
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/settings"
+                  path="/dashboard/settings"
                   element={
                     <ProtectedRoute>
                       <Settings />
@@ -47,7 +49,7 @@ const App = () => (
                   }
                 />
                 <Route
-                  path="/tasks"
+                  path="/dashboard/tasks"
                   element={
                     <ProtectedRoute>
                       <Tasks />

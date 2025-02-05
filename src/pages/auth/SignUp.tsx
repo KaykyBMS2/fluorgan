@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,14 @@ export default function SignUp() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
       if (!email || !password || !firstName || !lastName || !username) {
@@ -36,29 +37,31 @@ export default function SignUp() {
       
       toast({
         title: t("success", "common"),
-        description: "Please check your email to verify your account.",
+        description: t("checkEmail", "auth"),
       });
       
-      navigate("/auth/login");
     } catch (error: any) {
+      console.error("Signup error:", error);
       toast({
         title: t("error", "common"),
-        description: error.message,
+        description: error.message || t("signupError", "auth"),
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center mb-8">
         <h1 className="text-4xl font-bold text-primary mb-2">Fluorgan</h1>
         <p className="text-muted-foreground">Organize suas tarefas como nunca antes</p>
       </div>
       
-      <Card className="w-full max-w-md bg-card">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center text-foreground">
+          <CardTitle className="text-2xl text-center">
             {t("signupTitle", "auth")}
           </CardTitle>
         </CardHeader>
@@ -67,10 +70,11 @@ export default function SignUp() {
           <Button 
             variant="outline" 
             className="w-full"
+            disabled={isLoading}
             onClick={() => {/* TODO: Implement Google signup */}}
           >
             <FcGoogle className="mr-2 h-5 w-5" />
-            Cadastrar com Google
+            {t("signupWithGoogle", "auth")}
           </Button>
           
           <div className="relative">
@@ -79,7 +83,7 @@ export default function SignUp() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                ou continue com email
+                {t("orContinueWith", "auth")}
               </span>
             </div>
           </div>
@@ -90,42 +94,51 @@ export default function SignUp() {
                 placeholder={t("firstName", "auth")}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                disabled={isLoading}
                 required
-                className="h-11 bg-background text-foreground"
+                className="h-11"
               />
               <Input
                 placeholder={t("lastName", "auth")}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                disabled={isLoading}
                 required
-                className="h-11 bg-background text-foreground"
+                className="h-11"
               />
             </div>
             <Input
               placeholder={t("username", "common")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={isLoading}
               required
-              className="h-11 bg-background text-foreground"
+              className="h-11"
             />
             <Input
               type="email"
               placeholder={t("email", "common")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
               required
-              className="h-11 bg-background text-foreground"
+              className="h-11"
             />
             <Input
               type="password"
               placeholder={t("password", "common")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
               required
-              className="h-11 bg-background text-foreground"
+              className="h-11"
             />
-            <Button type="submit" className="w-full h-11">
-              {t("signup", "common")}
+            <Button 
+              type="submit" 
+              className="w-full h-11"
+              disabled={isLoading}
+            >
+              {isLoading ? t("signingUp", "auth") : t("signup", "common")}
             </Button>
           </form>
         </CardContent>

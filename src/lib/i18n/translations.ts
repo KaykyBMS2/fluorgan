@@ -5,6 +5,13 @@ export const translations = {
     common: {
       getStarted: "Get Started",
       allRightsReserved: "All rights reserved",
+      login: "Login",
+      dashboard: "Dashboard",
+      welcome: "Welcome back",
+      pending: "Pending Tasks",
+      completed: "Completed Tasks",
+      overdue: "Overdue Tasks",
+      productivity: "Productivity"
     },
     landing: {
       heroTitle: "Organize Your Work Flow",
@@ -27,6 +34,13 @@ export const translations = {
     common: {
       getStarted: "Comenzar",
       allRightsReserved: "Todos los derechos reservados",
+      login: "Iniciar Sesión",
+      dashboard: "Panel de Control",
+      welcome: "Bienvenido de nuevo",
+      pending: "Tareas Pendientes",
+      completed: "Tareas Completadas",
+      overdue: "Tareas Atrasadas",
+      productivity: "Productividad"
     },
     landing: {
       heroTitle: "Organiza tu Flujo de Trabajo",
@@ -49,6 +63,13 @@ export const translations = {
     common: {
       getStarted: "Começar",
       allRightsReserved: "Todos os direitos reservados",
+      login: "Entrar",
+      dashboard: "Painel de Controle",
+      welcome: "Bem-vindo de volta",
+      pending: "Tarefas Pendentes",
+      completed: "Tarefas Concluídas",
+      overdue: "Tarefas Atrasadas",
+      productivity: "Produtividade"
     },
     landing: {
       heroTitle: "Organize seu Fluxo de Trabalho",

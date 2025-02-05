@@ -8,7 +8,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Navigation */}
       <nav className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">
@@ -30,7 +29,6 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-500">
           {t("heroTitle", "landing")}
@@ -57,7 +55,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="container mx-auto px-4 py-20">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
           {t("featuresTitle", "landing")}
@@ -92,7 +89,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="bg-primary-500 dark:bg-primary-600 rounded-2xl p-12 text-center text-white">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
@@ -112,7 +108,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="container mx-auto px-4 py-12">
         <div className="text-center text-gray-600 dark:text-gray-400">
           <p>© 2024 Fluorgan. {t("allRightsReserved", "common")}</p>

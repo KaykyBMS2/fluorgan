@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
 
       if (event === 'SIGNED_IN') {
-        navigate('/');
+        navigate('/dashboard');
       } else if (event === 'SIGNED_OUT') {
         navigate('/auth/login');
       }
@@ -81,6 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         throw error;
       }
+
+      // Successful login will trigger onAuthStateChange which handles navigation
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
@@ -163,7 +165,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       setUser(null);
-      navigate("/auth/login");
     } catch (error: any) {
       console.error('Sign out error:', error);
       toast({

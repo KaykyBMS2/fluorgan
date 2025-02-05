@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -10,6 +10,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -19,9 +20,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         description: "Você precisa estar logado para acessar esta página",
         variant: "destructive",
       });
-      navigate("/auth/login");
+      navigate("/auth/login", { state: { from: location.pathname } });
     }
-  }, [user, loading, navigate, toast]);
+  }, [user, loading, navigate, location, toast]);
 
   if (loading) {
     return <div>Carregando...</div>;

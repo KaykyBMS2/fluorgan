@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -94,7 +94,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, username: string) => {
     try {
-      // Validate input data
       if (!email || !password || !firstName || !lastName || !username) {
         throw new Error("All fields are required");
       }
@@ -107,10 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             first_name: firstName,
             last_name: lastName,
             username: username,
-            email: email, // Add email to metadata
-            avatar_url: null, // Add default avatar_url
-            language: 'en', // Add default language
-            theme: 'light', // Add default theme
+            email: email,
+            avatar_url: null,
+            language: 'en',
+            theme: 'light',
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`
         },

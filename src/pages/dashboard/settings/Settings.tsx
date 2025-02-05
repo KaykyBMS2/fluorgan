@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { PreferenceSettings } from "@/components/settings/PreferenceSettings";
 
-export default function Settings() {
+const Settings = () => {
   const { user } = useAuth();
 
   const { data: profile } = useQuery({
@@ -32,4 +32,6 @@ export default function Settings() {
       </div>
     </Layout>
   );
-}
+};
+
+export default Settings;

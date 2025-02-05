@@ -68,13 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast({
-            title: "Erro ao entrar",
-            description: "Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente.",
+            title: "Error signing in",
+            description: "Invalid email or password. Please check your credentials and try again.",
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Erro ao entrar",
+            title: "Error signing in",
             description: error.message,
             variant: "destructive",
           });
@@ -84,8 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
-        title: "Erro ao entrar",
-        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
+        title: "Error signing in",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       throw error;
@@ -94,6 +94,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, username: string) => {
     try {
+      // Validate input data
+      if (!email || !password || !firstName || !lastName || !username) {
+        throw new Error("All fields are required");
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -102,6 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             first_name: firstName,
             last_name: lastName,
             username: username,
+            email: email, // Add email to metadata
+            avatar_url: null, // Add default avatar_url
+            language: 'en', // Add default language
+            theme: 'light', // Add default theme
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`
         },
@@ -110,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error("Error creating account:", error);
         toast({
-          title: "Erro ao criar conta",
+          title: "Error creating account",
           description: error.message,
           variant: "destructive",
         });
@@ -119,23 +128,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!data.user) {
         toast({
-          title: "Erro",
-          description: "Usuário não foi criado corretamente.",
+          title: "Error",
+          description: "User was not created properly.",
           variant: "destructive",
         });
         throw new Error("User was not created properly.");
       }
       
       toast({
-        title: "Sucesso!",
-        description: "Por favor, verifique seu email para ativar sua conta.",
+        title: "Success!",
+        description: "Please check your email to activate your account.",
       });
       navigate("/auth/login");
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast({
-        title: "Erro ao criar conta",
-        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
+        title: "Error creating account",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       throw error;
@@ -148,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Sign out error:', error);
         toast({
-          title: "Erro ao sair",
+          title: "Error signing out",
           description: error.message,
           variant: "destructive",
         });
@@ -159,8 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error('Sign out error:', error);
       toast({
-        title: "Erro ao sair",
-        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
+        title: "Error signing out",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }

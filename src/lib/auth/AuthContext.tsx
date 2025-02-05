@@ -21,27 +21,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const fetchSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Error fetching session:", error);
+          toast({
+            title: "Error",
+            description: "Failed to retrieve session",
+            variant: "destructive",
+          });
+        }
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error("Session fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
-    });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        if (event === 'SIGNED_IN') {
-          navigate('/');
-        } else if (event === 'SIGNED_OUT') {
-          navigate('/auth/login');
-        }
-      } catch (error) {
-        console.error('Auth state change error:', error);
-        setUser(null);
-        setLoading(false);
+      if (event === 'SIGNED_IN') {
+        navigate('/');
+      } else if (event === 'SIGNED_OUT') {
         navigate('/auth/login');
       }
     });
@@ -49,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -61,13 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast({
-            title: "Error signing in",
-            description: "Invalid email or password. Please check your credentials and try again.",
+            title: "Erro ao entrar",
+            description: "Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente.",
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Error signing in",
+            title: "Erro ao entrar",
             description: error.message,
             variant: "destructive",
           });
@@ -77,8 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast({
-        title: "Error signing in",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Erro ao entrar",
+        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
         variant: "destructive",
       });
       throw error;
@@ -87,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, username: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -101,25 +108,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       if (error) {
-        console.error('Sign up error:', error);
+        console.error("Error creating account:", error);
         toast({
-          title: "Error signing up",
+          title: "Erro ao criar conta",
           description: error.message,
           variant: "destructive",
         });
         throw error;
       }
+
+      if (!data.user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não foi criado corretamente.",
+          variant: "destructive",
+        });
+        throw new Error("User was not created properly.");
+      }
       
       toast({
-        title: "Success!",
-        description: "Please check your email to verify your account.",
+        title: "Sucesso!",
+        description: "Por favor, verifique seu email para ativar sua conta.",
       });
       navigate("/auth/login");
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast({
-        title: "Error signing up",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Erro ao criar conta",
+        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
         variant: "destructive",
       });
       throw error;
@@ -129,17 +145,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        console.error('Sign out error:', error);
+        toast({
+          title: "Erro ao sair",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      setUser(null);
+      navigate("/auth/login");
     } catch (error: any) {
       console.error('Sign out error:', error);
       toast({
-        title: "Error signing out",
-        description: error.message,
+        title: "Erro ao sair",
+        description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
         variant: "destructive",
       });
-    } finally {
-      setUser(null);
-      navigate("/auth/login");
     }
   };
 

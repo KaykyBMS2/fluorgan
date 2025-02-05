@@ -22,31 +22,21 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    try {
-      if (!email || !password || !firstName || !lastName || !username) {
-        toast({
-          title: t("error", "common"),
-          description: t("allFieldsRequired", "auth"),
-          variant: "destructive",
-        });
-        return;
-      }
 
-      await signUp(email, password, firstName, lastName, username);
-      
-      toast({
-        title: t("success", "common"),
-        description: t("checkEmail", "auth"),
-      });
-      
-    } catch (error: any) {
-      console.error("Signup error:", error);
+    if (!email || !password || !firstName || !lastName || !username) {
       toast({
         title: t("error", "common"),
-        description: error.message || t("signupError", "auth"),
+        description: t("allFieldsRequired", "auth"),
         variant: "destructive",
       });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await signUp(email, password, firstName, lastName, username);
+    } catch (error: any) {
+      console.error("Signup error:", error);
     } finally {
       setIsLoading(false);
     }

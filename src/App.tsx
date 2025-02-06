@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { AuthProvider } from "@/lib/auth/AuthContext";
 import Index from "@/pages/Index";
 import Login from "@/pages/auth/Login";
 import SignUp from "@/pages/auth/SignUp";
@@ -38,25 +39,33 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<PublicRoute><Index /></PublicRoute>} />
+      <Route path="/auth/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/auth/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
+      <Route path="/pricing" element={<Pricing />} />
+
+      {/* Protected routes */}
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+
+      {/* 404 route */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 const App = () => {
   return (
     <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<PublicRoute><Index /></PublicRoute>} />
-        <Route path="/auth/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/auth/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
-        <Route path="/pricing" element={<Pricing />} />
-
-        {/* Protected routes */}
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-
-        {/* 404 route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </Router>
   );
 };

@@ -50,66 +50,6 @@ export function TaskList() {
     },
   });
 
-  const handleDeleteTask = async () => {
-    if (!deleteTaskId) return;
-
-    try {
-      const { error } = await supabase
-        .from("tasks")
-        .delete()
-        .eq("id", deleteTaskId);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({
-        title: t("success"),
-        description: t("taskDeleted"),
-      });
-    } catch (error: any) {
-      toast({
-        title: t("error"),
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteTaskId(null);
-    }
-  };
-
-  const handleUpdateTask = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!editTask) return;
-
-    const formData = new FormData(event.currentTarget);
-    const updatedTask = {
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-    };
-
-    try {
-      const { error } = await supabase
-        .from("tasks")
-        .update(updatedTask)
-        .eq("id", editTask.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({
-        title: t("success"),
-        description: t("taskUpdated"),
-      });
-      setEditTask(null);
-    } catch (error: any) {
-      toast({
-        title: t("error"),
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
 
@@ -137,8 +77,6 @@ export function TaskList() {
           task.id === taskId ? { ...task, status: newStatus } : task
         );
       });
-
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       toast({
         title: t("success"),
@@ -172,7 +110,7 @@ export function TaskList() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">{t("loading")}</p>
+        <p className="text-muted-foreground">{t("loading")}</p>
       </div>
     );
   }
@@ -185,7 +123,7 @@ export function TaskList() {
     <div className="relative">
       <div className="absolute top-1/2 -left-4 transform -translate-y-1/2 z-10">
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
           onClick={() => handleScroll('left')}
           className="rounded-full bg-background/80 backdrop-blur-sm shadow-md"
@@ -196,7 +134,7 @@ export function TaskList() {
 
       <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
           onClick={() => handleScroll('right')}
           className="rounded-full bg-background/80 backdrop-blur-sm shadow-md"
@@ -208,8 +146,12 @@ export function TaskList() {
       <DragDropContext onDragEnd={handleDragEnd}>
         <div 
           id="kanban-container"
-          className="flex gap-6 overflow-x-auto pb-4 px-4 snap-x snap-mandatory"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex gap-6 overflow-x-auto pb-4 px-4 snap-x snap-mandatory hide-scrollbar"
+          style={{ 
+            scrollbarWidth: 'none', 
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch'
+          }}
         >
           {columns.map((column) => (
             <div key={column.id} className="snap-center">
@@ -232,13 +174,11 @@ export function TaskList() {
       <DeleteTaskDialog
         taskId={deleteTaskId}
         onOpenChange={() => setDeleteTaskId(null)}
-        onConfirm={handleDeleteTask}
       />
 
       <EditTaskDialog
         task={editTask}
         onOpenChange={() => setEditTask(null)}
-        onSubmit={handleUpdateTask}
       />
     </div>
   );

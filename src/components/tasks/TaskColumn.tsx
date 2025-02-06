@@ -11,14 +11,14 @@ interface TaskColumnProps {
 
 export const TaskColumn = ({ id, title, tasks }: TaskColumnProps) => {
   return (
-    <Card className="flex flex-col min-w-[300px] p-4 bg-muted/50">
-      <h2 className="text-lg font-semibold mb-4 px-2">{title}</h2>
+    <Card className="flex flex-col min-w-[300px] bg-background border shadow-sm">
+      <h2 className="text-lg font-semibold mb-4 px-4 pt-4">{title}</h2>
       <Droppable droppableId={id}>
         {(provided) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="flex-1 space-y-4 min-h-[200px]"
+            className="flex-1 space-y-4 p-4 min-h-[200px]"
           >
             {tasks.map((task, index) => (
               <TaskCard key={task.id} task={task} index={index} />

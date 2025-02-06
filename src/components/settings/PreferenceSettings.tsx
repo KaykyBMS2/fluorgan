@@ -14,13 +14,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Flag, Globe, Moon, Sun } from "lucide-react";
 
 export function PreferenceSettings() {
   const { t, language, setLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
 
+  const languages = [
+    { value: "en", label: "English", flag: "🇺🇸" },
+    { value: "pt", label: "Português", flag: "🇧🇷" },
+    { value: "es", label: "Español", flag: "🇪🇸" },
+  ];
+
+  const themes = [
+    { value: "light", label: t("light", "settings"), icon: Sun },
+    { value: "dark", label: t("dark", "settings"), icon: Moon },
+    { value: "system", label: t("system", "settings"), icon: Globe },
+  ];
+
   return (
-    <>
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>{t("language", "settings")}</CardTitle>
@@ -30,13 +43,20 @@ export function PreferenceSettings() {
         </CardHeader>
         <CardContent>
           <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="pt-BR">Português</SelectItem>
-              <SelectItem value="es">Español</SelectItem>
+              {languages.map((lang) => (
+                <SelectItem
+                  key={lang.value}
+                  value={lang.value}
+                  className="flex items-center gap-2"
+                >
+                  <span className="text-xl">{lang.flag}</span>
+                  <span>{lang.label}</span>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </CardContent>
@@ -51,17 +71,24 @@ export function PreferenceSettings() {
         </CardHeader>
         <CardContent>
           <Select value={theme} onValueChange={setTheme}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Claro</SelectItem>
-              <SelectItem value="dark">Escuro</SelectItem>
-              <SelectItem value="system">Sistema</SelectItem>
+              {themes.map((themeOption) => (
+                <SelectItem
+                  key={themeOption.value}
+                  value={themeOption.value}
+                  className="flex items-center gap-2"
+                >
+                  <themeOption.icon className="h-4 w-4" />
+                  <span>{themeOption.label}</span>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

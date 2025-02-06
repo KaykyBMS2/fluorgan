@@ -1,6 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { AuthProvider } from "@/lib/auth/AuthContext";
 import Index from "@/pages/Index";
 import Login from "@/pages/auth/Login";
 import SignUp from "@/pages/auth/SignUp";
@@ -39,7 +38,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const AppRoutes = () => {
+const App = () => {
   return (
     <Routes>
       {/* Public routes */}
@@ -57,16 +56,6 @@ const AppRoutes = () => {
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
-  );
-};
-
-const App = () => {
-  return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </Router>
   );
 };
 

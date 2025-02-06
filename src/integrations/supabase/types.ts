@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          badge_url: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_premium: boolean | null
+          name: string
+          points: number
+          required_actions: Json | null
+          updated_at: string
+        }
+        Insert: {
+          badge_url?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+          points?: number
+          required_actions?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          badge_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+          points?: number
+          required_actions?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       automations: {
         Row: {
           action_type: string
@@ -197,11 +236,15 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string | null
+          experience_points: number | null
           first_name: string | null
           id: string
           language: string | null
           last_name: string | null
+          level: number | null
+          onboarding_completed: boolean | null
           theme: string | null
+          ui_preferences: Json | null
           updated_at: string
           username: string | null
         }
@@ -209,11 +252,15 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          experience_points?: number | null
           first_name?: string | null
           id: string
           language?: string | null
           last_name?: string | null
+          level?: number | null
+          onboarding_completed?: boolean | null
           theme?: string | null
+          ui_preferences?: Json | null
           updated_at?: string
           username?: string | null
         }
@@ -221,11 +268,15 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          experience_points?: number | null
           first_name?: string | null
           id?: string
           language?: string | null
           last_name?: string | null
+          level?: number | null
+          onboarding_completed?: boolean | null
           theme?: string | null
+          ui_preferences?: Json | null
           updated_at?: string
           username?: string | null
         }
@@ -380,6 +431,48 @@ export type Database = {
           {
             foreignKeyName: "tasks_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          id: string
+          unlocked_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          id?: string
+          unlocked_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          unlocked_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

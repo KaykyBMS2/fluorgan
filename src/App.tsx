@@ -11,9 +11,9 @@ import NotFound from "@/pages/NotFound";
 import Pricing from "@/pages/pricing/Pricing";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 
@@ -25,9 +25,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 

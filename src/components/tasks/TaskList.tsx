@@ -107,6 +107,63 @@ export function TaskList() {
     setScrollPosition(newPosition);
   };
 
+  const handleDeleteTask = async () => {
+    if (!deleteTaskId) return;
+
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .delete()
+        .eq("id", deleteTaskId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast({
+        title: t("success"),
+        description: t("taskDeleted"),
+      });
+      setDeleteTaskId(null);
+    } catch (error: any) {
+      toast({
+        title: t("error"),
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditTask = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editTask) return;
+
+    const formData = new FormData(event.currentTarget);
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ title, description })
+        .eq("id", editTask.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast({
+        title: t("success"),
+        description: t("taskUpdated"),
+      });
+      setEditTask(null);
+    } catch (error: any) {
+      toast({
+        title: t("error"),
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -174,11 +231,13 @@ export function TaskList() {
       <DeleteTaskDialog
         taskId={deleteTaskId}
         onOpenChange={() => setDeleteTaskId(null)}
+        onConfirm={handleDeleteTask}
       />
 
       <EditTaskDialog
         task={editTask}
         onOpenChange={() => setEditTask(null)}
+        onSubmit={handleEditTask}
       />
     </div>
   );

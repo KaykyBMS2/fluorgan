@@ -26,7 +26,7 @@ const Settings = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="container mx-auto py-6 space-y-6 animate-in fade-in slide-in-from-bottom duration-500">
         <ProfileSettings profile={profile} />
         <PreferenceSettings />
       </div>

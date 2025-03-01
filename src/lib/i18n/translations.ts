@@ -1,3 +1,6 @@
+
+export type Language = "en" | "es" | "pt-BR";
+
 export const translations = {
   en: {
     common: {

@@ -23,8 +23,8 @@ export default function Boards() {
     queryFn: async () => {
       if (!user) {
         toast({
-          title: "Error",
-          description: "You must be logged in to view boards",
+          title: t("common.error", "Error"),
+          description: t("boards.mustBeLoggedIn", "You must be logged in to view boards"),
           variant: "destructive",
         });
         return [];
@@ -35,14 +35,15 @@ export default function Boards() {
       const { data, error } = await supabase
         .from("boards")
         .select("*")
+        .eq("created_by", user.id)
         .eq("is_archived", false)
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error fetching boards:", error);
         toast({
-          title: "Error",
-          description: "Failed to load boards: " + error.message,
+          title: t("common.error", "Error"),
+          description: t("boards.fetchError", "Failed to load boards: ") + error.message,
           variant: "destructive",
         });
         throw error;

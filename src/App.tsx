@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth/AuthContext";
 import Index from "@/pages/Index";
@@ -9,6 +10,8 @@ import Settings from "@/pages/dashboard/settings/Settings";
 import Reports from "@/pages/dashboard/reports/Reports";
 import NotFound from "@/pages/NotFound";
 import Pricing from "@/pages/pricing/Pricing";
+import Boards from "@/pages/boards/Boards";
+import BoardPage from "@/pages/boards/BoardPage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -50,6 +53,8 @@ const App = () => {
       {/* Protected routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+      <Route path="/boards" element={<ProtectedRoute><Boards /></ProtectedRoute>} />
+      <Route path="/boards/:id" element={<ProtectedRoute><BoardPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
 

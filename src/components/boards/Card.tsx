@@ -1,126 +1,132 @@
 
-import { Draggable } from "react-beautiful-dnd";
-import { Calendar, MessageSquare, Paperclip, CheckSquare, User2 } from "lucide-react";
+import { useState } from "react";
+import { Calendar, User2, Tag, CheckSquare, MessageSquare, Paperclip, Clock } from "lucide-react";
+import { Card as CardComponent } from "@/components/ui/card";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { format } from "date-fns";
 import { Card as CardType } from "@/types/board";
-import { Badge } from "@/components/ui/badge";
+import { Draggable } from "react-beautiful-dnd";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 interface CardProps {
   card: CardType;
   index: number;
+  onCardClick: (card: CardType) => void;
 }
 
-export function Card({ card, index }: CardProps) {
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+export function Card({ card, index, onCardClick }: CardProps) {
+  const { t } = useLanguage();
+  const [isHovered, setIsHovered] = useState(false);
+
+  const hasDueDate = Boolean(card.due_date);
+  const hasAssignee = Boolean(card.assigned_to);
+  const hasLabels = Boolean(card.labels && card.labels.length > 0);
+  const hasChecklists = Boolean(card.checklists && card.checklists.length > 0);
+  const hasComments = Boolean(card.comments && card.comments.length > 0);
+  const hasAttachments = Boolean(card.attachments && card.attachments.length > 0);
+
+  const isPastDue = hasDueDate && new Date(card.due_date!) < new Date();
+
+  // Compute total and completed checklist items
+  const checklistStats = card.checklists?.reduce(
+    (acc, checklist) => {
+      acc.total += checklist.items?.length || 0;
+      acc.completed += checklist.items?.filter(item => item.is_completed)?.length || 0;
+      return acc;
+    },
+    { total: 0, completed: 0 }
+  );
+
+  const handleClick = () => {
+    onCardClick(card);
   };
-
-  const getUserInfo = () => {
-    const user = card.assigned_user;
-    if (!user) return null;
-
-    const name = user.first_name && user.last_name
-      ? `${user.first_name} ${user.last_name}`
-      : user.username || '';
-
-    return {
-      name,
-      initials: getInitials(name || '??'),
-      avatar: user.avatar_url,
-    };
-  };
-
-  const userInfo = getUserInfo();
 
   return (
     <Draggable draggableId={card.id} index={index}>
-      {(provided, snapshot) => (
+      {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
+          onClick={handleClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           className={cn(
-            "mb-2 rounded-md border bg-card p-3 shadow-sm hover:shadow-md transition-shadow",
-            snapshot.isDragging && "shadow-md rotate-1",
-            card.color && `border-l-4 border-l-[${card.color}]`
+            "mb-2 transform transition-transform",
+            isHovered && "scale-[1.02]"
           )}
         >
-          <div className="space-y-2">
-            <h4 className="font-medium">{card.title}</h4>
-            {card.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {card.description}
-              </p>
-            )}
-
-            {card.labels && card.labels.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {card.labels.map((label) => (
-                  <Badge
+          <CardComponent className="p-3 cursor-pointer hover:shadow-md">
+            {hasLabels && (
+              <div className="mb-2 flex flex-wrap gap-1">
+                {card.labels?.map((label) => (
+                  <span
                     key={label.id}
-                    variant="outline"
-                    className="h-1.5 w-6"
+                    className="w-8 h-2 rounded-sm block"
                     style={{ backgroundColor: label.color }}
+                    title={label.name}
                   />
                 ))}
               </div>
             )}
 
-            <div className="flex items-center justify-between text-muted-foreground pt-2">
-              <div className="flex gap-2">
-                {card.due_date && (
-                  <div className="flex items-center text-xs">
-                    <Calendar className="h-3.5 w-3.5 mr-1" />
-                    {format(new Date(card.due_date), "MMM d")}
-                  </div>
+            <h3 className="font-medium mb-2">{card.title}</h3>
+
+            <div className="space-y-2">
+              {card.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2">
+                  {card.description}
+                </p>
+              )}
+
+              <div className="flex items-center gap-1 flex-wrap text-xs text-muted-foreground">
+                {hasDueDate && (
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "flex items-center gap-1 text-xs",
+                      isPastDue && "bg-destructive/10 text-destructive"
+                    )}
+                  >
+                    <Clock className="h-3 w-3" />
+                    {format(new Date(card.due_date!), "dd MMM")}
+                  </Badge>
                 )}
 
-                {card.comments && card.comments.length > 0 && (
-                  <div className="flex items-center text-xs">
-                    <MessageSquare className="h-3.5 w-3.5 mr-1" />
-                    {card.comments.length}
-                  </div>
+                {hasAttachments && (
+                  <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                    <Paperclip className="h-3 w-3" />
+                    {card.attachments?.length}
+                  </Badge>
                 )}
 
-                {card.attachments && card.attachments.length > 0 && (
-                  <div className="flex items-center text-xs">
-                    <Paperclip className="h-3.5 w-3.5 mr-1" />
-                    {card.attachments.length}
-                  </div>
+                {hasChecklists && checklistStats && (
+                  <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                    <CheckSquare className="h-3 w-3" />
+                    {checklistStats.completed}/{checklistStats.total}
+                  </Badge>
                 )}
 
-                {card.checklists && card.checklists.length > 0 && (
-                  <div className="flex items-center text-xs">
-                    <CheckSquare className="h-3.5 w-3.5 mr-1" />
-                    {card.checklists.reduce((count, checklist) => {
-                      const completed = checklist.items?.filter(item => item.is_completed).length || 0;
-                      const total = checklist.items?.length || 0;
-                      return count + `${completed}/${total}`;
-                    }, "")}
-                  </div>
+                {hasComments && (
+                  <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                    <MessageSquare className="h-3 w-3" />
+                    {card.comments?.length}
+                  </Badge>
                 )}
               </div>
 
-              {userInfo && (
-                <div className="flex items-center">
-                  <Avatar className="h-6 w-6">
-                    {userInfo.avatar && (
-                      <AvatarImage src={userInfo.avatar} alt={userInfo.name} />
-                    )}
-                    <AvatarFallback className="text-xs">
-                      {userInfo.initials}
-                    </AvatarFallback>
-                  </Avatar>
+              {hasAssignee && (
+                <div className="flex justify-end">
+                  <div className="flex -space-x-1 overflow-hidden">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center" title={card.assigned_user?.first_name || ''}>
+                      <User2 className="h-3 w-3 text-primary" />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
+          </CardComponent>
         </div>
       )}
     </Draggable>

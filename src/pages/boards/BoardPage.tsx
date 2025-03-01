@@ -1,31 +1,32 @@
 
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DragDropContext, DropResult } from "react-beautiful-dnd";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Board, List, Card as CardType } from "@/types/board";
-import { BoardList } from "@/components/boards/BoardList";
+import { Board, Card, List } from "@/types/board";
+import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { ChevronLeft, ArrowLeft, Plus } from "lucide-react";
+import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Settings } from "lucide-react";
-import { CreateCardModal } from "@/components/boards/CreateCardModal";
+import { BoardList } from "@/components/boards/BoardList";
+import { useAuth } from "@/lib/auth/AuthContext";
 
-const BoardPage = () => {
+export default function BoardPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [createCardModalOpen, setCreateCardModalOpen] = useState(false);
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [cardModalOpen, setCardModalOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
-  const { data: board, isLoading } = useQuery({
+  const { data: board, isLoading: isBoardLoading } = useQuery({
     queryKey: ["board", id],
     queryFn: async () => {
-      if (!id) throw new Error("Board ID is required");
-
+      // Get the board
       const { data: boardData, error: boardError } = await supabase
         .from("boards")
         .select("*")
@@ -34,51 +35,52 @@ const BoardPage = () => {
 
       if (boardError) throw boardError;
 
+      // Get the lists for this board
       const { data: listsData, error: listsError } = await supabase
         .from("lists")
         .select("*")
         .eq("board_id", id)
         .eq("is_archived", false)
-        .order("position");
+        .order("position", { ascending: true });
 
       if (listsError) throw listsError;
 
+      // Get all cards for this board
       const { data: cardsData, error: cardsError } = await supabase
         .from("cards")
         .select(`
           *,
-          assigned_to:profiles(*)
+          assigned_user:assigned_to(*)
         `)
-        .eq("is_archived", false)
-        .in(
-          "list_id",
-          listsData.map((list) => list.id)
-        )
-        .order("position");
+        .eq("is_archived", false);
 
       if (cardsError) throw cardsError;
 
-      // Group cards by list
-      const listsWithCards = listsData.map((list) => ({
+      // Organize cards into their respective lists
+      const lists = listsData.map((list) => ({
         ...list,
-        cards: cardsData.filter((card) => card.list_id === list.id),
+        cards: cardsData
+          .filter((card) => card.list_id === list.id)
+          .sort((a, b) => a.position - b.position),
       }));
 
       return {
         ...boardData,
-        lists: listsWithCards,
+        lists,
       } as Board;
     },
-    enabled: !!id,
+    enabled: !!id && !!user,
   });
 
+  const handleCardClick = (card: Card) => {
+    setSelectedCard(card);
+    setCardModalOpen(true);
+  };
+
   const handleDragEnd = async (result: DropResult) => {
-    const { source, destination, type, draggableId } = result;
+    const { destination, source, draggableId, type } = result;
 
-    // Dropped outside the list
     if (!destination) return;
-
-    // No movement
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -86,185 +88,154 @@ const BoardPage = () => {
       return;
     }
 
-    // Update locally first for a responsive UI
-    queryClient.setQueryData(["board", id], (oldData: any) => {
-      if (!oldData) return oldData;
-
-      const newBoard = { ...oldData };
-
-      if (type === "LIST") {
-        // Reorder lists
-        const newLists = Array.from(newBoard.lists);
-        const [movedList] = newLists.splice(source.index, 1);
-        newLists.splice(destination.index, 0, movedList);
-
-        // Update positions
-        newLists.forEach((list, index) => {
-          list.position = index;
-        });
-
-        newBoard.lists = newLists;
-      } else {
-        // Reorder cards
-        const sourceListIndex = newBoard.lists.findIndex(
-          (l: List) => l.id === source.droppableId
-        );
-        const destListIndex = newBoard.lists.findIndex(
-          (l: List) => l.id === destination.droppableId
-        );
-
-        if (sourceListIndex === -1 || destListIndex === -1) return oldData;
-
-        const newSourceCards = Array.from(newBoard.lists[sourceListIndex].cards || []);
+    if (type === "list") {
+      try {
+        // Get all lists
+        const lists = [...(board?.lists || [])];
         
-        // Find the moved card
-        const movedCardIndex = newSourceCards.findIndex(
-          (c: CardType) => c.id === draggableId
-        );
-        
-        if (movedCardIndex === -1) return oldData;
-        
-        const movedCard = { ...newSourceCards[movedCardIndex] };
-        
-        // Remove from source list
-        newSourceCards.splice(movedCardIndex, 1);
-        
-        // Add to destination list (might be the same list)
-        const newDestCards = 
-          source.droppableId === destination.droppableId
-            ? newSourceCards
-            : Array.from(newBoard.lists[destListIndex].cards || []);
+        // Reorder the lists
+        const [removedList] = lists.splice(source.index, 1);
+        lists.splice(destination.index, 0, removedList);
 
-        // Update the list_id if moving between lists
-        if (source.droppableId !== destination.droppableId) {
-          movedCard.list_id = destination.droppableId;
-        }
-        
-        // Insert at the new position
-        newDestCards.splice(destination.index, 0, movedCard);
-        
-        // Update positions for all cards
-        newDestCards.forEach((card: CardType, index: number) => {
-          card.position = index;
-        });
-        
-        // Update the lists in the board
-        newBoard.lists[sourceListIndex].cards = 
-          source.droppableId === destination.droppableId
-            ? newDestCards
-            : newSourceCards;
-            
-        if (source.droppableId !== destination.droppableId) {
-          newBoard.lists[destListIndex].cards = newDestCards;
-        }
-      }
-
-      return newBoard;
-    });
-
-    try {
-      if (type === "LIST") {
-        // Update lists positions in the database
-        const updatedLists = board?.lists?.map((list, index) => ({
-          id: list.id,
-          position: index === source.index ? destination.index : 
-                    index >= Math.min(source.index, destination.index) && 
-                    index <= Math.max(source.index, destination.index) 
-                    ? index < source.index ? index + 1 : index - 1 
-                    : index
+        // Update positions in UI
+        const updatedLists = lists.map((list, index) => ({
+          ...list,
+          position: index,
         }));
 
-        if (updatedLists) {
-          const { error } = await supabase.from("lists").upsert(
-            updatedLists.map(list => ({
-              id: list.id,
-              position: list.position
-            }))
-          );
-
-          if (error) throw error;
-        }
-      } else {
-        // Update card positions and list_id in the database
-        const card = board?.lists
-          ?.find(list => list.id === source.droppableId)
-          ?.cards?.find(card => card.id === draggableId);
-
-        if (card) {
-          const { error } = await supabase
-            .from("cards")
-            .update({ 
-              list_id: destination.droppableId,
-              position: destination.index 
-            })
-            .eq("id", draggableId);
-
-          if (error) throw error;
-        }
-
-        // Update positions of other affected cards
-        const sourceListCards = board?.lists
-          ?.find(list => list.id === source.droppableId)
-          ?.cards?.filter(card => card.id !== draggableId) || [];
-
-        const destListCards = source.droppableId !== destination.droppableId
-          ? board?.lists
-              ?.find(list => list.id === destination.droppableId)
-              ?.cards || []
-          : sourceListCards;
-
-        // Reorder source list cards
-        sourceListCards.forEach((card, index) => {
-          if (index >= source.index) {
-            supabase
-              .from("cards")
-              .update({ position: index })
-              .eq("id", card.id);
-          }
+        // Update locally first
+        queryClient.setQueryData(["board", id], {
+          ...board,
+          lists: updatedLists,
         });
 
-        // Reorder destination list cards
-        if (source.droppableId !== destination.droppableId) {
-          destListCards.forEach((card, index) => {
-            if (index >= destination.index) {
-              supabase
-                .from("cards")
-                .update({ position: index + 1 })
-                .eq("id", card.id);
-            }
-          });
-        }
-      }
+        // Update in database
+        const updates = updatedLists.map((list) => ({
+          id: list.id,
+          position: list.position,
+        }));
 
-      // Refresh data after server update
-      queryClient.invalidateQueries({ queryKey: ["board", id] });
-    } catch (error: any) {
-      console.error("Error updating positions:", error);
-      toast({
-        title: t("boards.error", "Erro"),
-        description: error.message,
-        variant: "destructive",
-      });
-      
-      // Rollback by invalidating the query
-      queryClient.invalidateQueries({ queryKey: ["board", id] });
+        for (const update of updates) {
+          const { error } = await supabase
+            .from("lists")
+            .update({ position: update.position })
+            .eq("id", update.id);
+
+          if (error) throw error;
+        }
+      } catch (error: any) {
+        console.error("Error reordering lists:", error);
+        toast({
+          title: t("boards.error", "Erro"),
+          description: error.message,
+          variant: "destructive",
+        });
+        // Refresh data from server
+        queryClient.invalidateQueries({ queryKey: ["board", id] });
+      }
+    } else if (type === "card") {
+      try {
+        const sourceListId = source.droppableId;
+        const destinationListId = destination.droppableId;
+        const cardId = draggableId;
+
+        // Create a copy of the board
+        const newBoard = { ...board } as Board;
+        
+        // Find the source and destination lists
+        const sourceList = newBoard.lists?.find((list) => list.id === sourceListId);
+        const destinationList = newBoard.lists?.find((list) => list.id === destinationListId);
+
+        if (!sourceList || !destinationList) return;
+
+        // Remove the card from the source list
+        const card = sourceList.cards?.find((card) => card.id === cardId);
+        if (!card) return;
+        
+        sourceList.cards = sourceList.cards?.filter((card) => card.id !== cardId);
+
+        // Add the card to the destination list at the right position
+        card.list_id = destinationListId;
+        destinationList.cards = destinationList.cards || [];
+        destinationList.cards.splice(destination.index, 0, card);
+
+        // Update positions for all cards in destination list
+        destinationList.cards = destinationList.cards.map((card, index) => ({
+          ...card,
+          position: index,
+        }));
+
+        // If source and destination are different, update positions in source list too
+        if (sourceList.id !== destinationList.id) {
+          sourceList.cards = (sourceList.cards || []).map((card, index) => ({
+            ...card,
+            position: index,
+          }));
+        }
+
+        // Update locally first
+        queryClient.setQueryData(["board", id], newBoard);
+
+        // Update in database
+        const { error } = await supabase
+          .from("cards")
+          .update({
+            list_id: destinationListId,
+            position: destination.index,
+          })
+          .eq("id", cardId);
+
+        if (error) throw error;
+
+        // Update positions for all cards in destination list
+        for (let i = 0; i < (destinationList.cards || []).length; i++) {
+          const currentCard = destinationList.cards?.[i];
+          if (currentCard && currentCard.position !== i) {
+            const { error } = await supabase
+              .from("cards")
+              .update({ position: i })
+              .eq("id", currentCard.id);
+            
+            if (error) throw error;
+          }
+        }
+
+        // If source and destination are different, update positions in source list too
+        if (sourceList.id !== destinationList.id) {
+          for (let i = 0; i < (sourceList.cards || []).length; i++) {
+            const currentCard = sourceList.cards?.[i];
+            if (currentCard && currentCard.position !== i) {
+              const { error } = await supabase
+                .from("cards")
+                .update({ position: i })
+                .eq("id", currentCard.id);
+              
+              if (error) throw error;
+            }
+          }
+        }
+      } catch (error: any) {
+        console.error("Error moving card:", error);
+        toast({
+          title: t("boards.error", "Erro"),
+          description: error.message,
+          variant: "destructive",
+        });
+        // Refresh data from server
+        queryClient.invalidateQueries({ queryKey: ["board", id] });
+      }
     }
   };
 
-  const handleCreateCard = (listId: string) => {
-    setSelectedListId(listId);
-    setCreateCardModalOpen(true);
-  };
-
-  if (isLoading) {
+  if (isBoardLoading) {
     return (
       <Layout>
-        <div className="animate-pulse space-y-6 p-4">
-          <div className="h-8 w-1/3 bg-secondary/20 rounded-md"></div>
-          <div className="flex space-x-4">
-            <div className="h-[70vh] w-72 bg-secondary/20 rounded-md"></div>
-            <div className="h-[70vh] w-72 bg-secondary/20 rounded-md"></div>
-            <div className="h-[70vh] w-72 bg-secondary/20 rounded-md"></div>
+        <div className="container py-6 animate-pulse">
+          <div className="h-8 w-1/3 bg-muted rounded mb-6" />
+          <div className="flex gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="w-[280px] h-[400px] bg-muted rounded" />
+            ))}
           </div>
         </div>
       </Layout>
@@ -274,16 +245,19 @@ const BoardPage = () => {
   if (!board) {
     return (
       <Layout>
-        <div className="flex flex-col items-center justify-center h-[50vh]">
-          <h2 className="text-2xl font-bold">
+        <div className="container py-12 text-center">
+          <h1 className="text-2xl font-bold mb-4">
             {t("boards.boardNotFound", "Quadro não encontrado")}
-          </h2>
-          <Button
-            onClick={() => window.history.back()}
-            variant="outline"
-            className="mt-4"
-          >
-            {t("boards.goBack", "Voltar")}
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            {t(
+              "boards.boardNotFoundDesc",
+              "O quadro que você está procurando não existe ou você não tem permissão para visualizá-lo"
+            )}
+          </p>
+          <Button onClick={() => navigate("/boards")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {t("boards.backToBoards", "Voltar para Quadros")}
           </Button>
         </div>
       </Layout>
@@ -292,56 +266,60 @@ const BoardPage = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 pb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-primary">{board.name}</h1>
-            {board.description && (
-              <p className="text-muted-foreground mt-1">{board.description}</p>
-            )}
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Users className="h-4 w-4 mr-2" />
-              {t("boards.share", "Compartilhar")}
-            </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              {t("boards.settings", "Configurações")}
-            </Button>
-          </div>
-        </div>
-
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 overflow-x-auto pb-4 pt-2 px-2 -mx-2 snap-x">
-            {board.lists?.map((list, index) => (
-              <BoardList
-                key={list.id}
-                index={index}
-                list={list}
-                onCreateCard={() => handleCreateCard(list.id)}
-              />
-            ))}
-            <div className="min-w-[272px] w-[272px] shrink-0 rounded-lg border border-dashed border-secondary p-4 flex flex-col items-center justify-center">
-              <Button variant="ghost" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                {t("boards.addList", "Adicionar lista")}
+      <div className="h-full flex flex-col">
+        <div className="container py-4 border-b">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/boards")}
+                className="mr-2"
+              >
+                <ChevronLeft className="h-5 w-5" />
               </Button>
+              <h1 className="text-2xl font-bold">{board.name}</h1>
             </div>
           </div>
-        </DragDropContext>
+          {board.description && (
+            <p className="text-muted-foreground text-sm">{board.description}</p>
+          )}
+        </div>
 
-        {selectedListId && (
-          <CreateCardModal
-            open={createCardModalOpen}
-            onOpenChange={setCreateCardModalOpen}
-            listId={selectedListId}
-            boardId={board.id}
-          />
-        )}
+        <div className="flex-1 overflow-hidden">
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="all-lists" direction="horizontal" type="list">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="flex gap-4 p-4 h-full overflow-x-auto"
+                >
+                  {board.lists?.map((list, index) => (
+                    <BoardList
+                      key={list.id}
+                      list={list}
+                      index={index}
+                      boardId={board.id}
+                      onCardClick={handleCardClick}
+                    />
+                  ))}
+                  {provided.placeholder}
+
+                  <div className="w-[280px] shrink-0">
+                    <Button variant="outline" className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("boards.addList", "Adicionar nova lista")}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </div>
       </div>
+
+      {/* Card detail modal would go here */}
     </Layout>
   );
-};
-
-export default BoardPage;
+}

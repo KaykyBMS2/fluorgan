@@ -9,23 +9,49 @@ import { supabase } from "@/integrations/supabase/client";
 import { Board } from "@/types/board";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Boards() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const { data: boards, isLoading } = useQuery({
     queryKey: ["boards"],
     queryFn: async () => {
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to view boards",
+          variant: "destructive",
+        });
+        return [];
+      }
+
+      console.log("Fetching boards for user:", user.id);
+      
       const { data, error } = await supabase
         .from("boards")
         .select("*")
         .eq("is_archived", false)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching boards:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load boards: " + error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      console.log("Boards data:", data);
       return data as Board[];
     },
+    enabled: !!user,
   });
 
   return (
@@ -35,7 +61,7 @@ export default function Boards() {
           <h1 className="text-3xl font-bold tracking-tight">
             {t("boards.boards", "Quadros")}
           </h1>
-          <Button onClick={() => setCreateModalOpen(true)}>
+          <Button onClick={() => setCreateModalOpen(true)} className="bg-[#0249FF] hover:bg-blue-700">
             <PlusCircle className="h-4 w-4 mr-2" />
             {t("boards.createNew", "Criar novo quadro")}
           </Button>
@@ -67,7 +93,7 @@ export default function Boards() {
                 "Crie um novo quadro para começar a organizar suas tarefas"
               )}
             </p>
-            <Button onClick={() => setCreateModalOpen(true)}>
+            <Button onClick={() => setCreateModalOpen(true)} className="bg-[#0249FF] hover:bg-blue-700">
               <PlusCircle className="h-4 w-4 mr-2" />
               {t("boards.createFirst", "Criar seu primeiro quadro")}
             </Button>

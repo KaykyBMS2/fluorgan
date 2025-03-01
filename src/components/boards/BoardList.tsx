@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 interface BoardListProps {
   list: List;
@@ -24,6 +25,7 @@ interface BoardListProps {
 
 export function BoardList({ list, index, boardId, onCardClick }: BoardListProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [createCardOpen, setCreateCardOpen] = useState(false);
 
   return (
